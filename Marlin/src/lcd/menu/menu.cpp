@@ -22,12 +22,13 @@
 
 #include "../../inc/MarlinConfigPre.h"
 
-#if HAS_LCD_MENU
+#if HAS_MARLINUI_MENU
 
 #include "menu.h"
 #include "../../module/planner.h"
 #include "../../module/motion.h"
 #include "../../module/printcounter.h"
+#include "../../module/temperature.h"
 #include "../../gcode/queue.h"
 
 #if HAS_BUZZER
@@ -162,15 +163,12 @@ void MenuEditItemBase::goto_edit_screen(
 
 #include "../../MarlinCore.h"
 
-bool printer_busy() {
-  return planner.movesplanned() || printingIsActive();
-}
-
 /**
  * General function to go directly to a screen
  */
 void MarlinUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, const uint8_t top/*=0*/, const uint8_t items/*=0*/) {
   if (currentScreen != screen) {
+    thermalManager.set_menu_cold_override(false);
 
     TERN_(IS_DWIN_MARLINUI, did_first_redraw = false);
 
@@ -205,14 +203,14 @@ void MarlinUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, co
     if (on_status_screen()) {
       defer_status_screen(false);
       clear_menu_history();
-      TERN_(AUTO_BED_LEVELING_UBL, ubl.lcd_map_control = false);
+      TERN_(AUTO_BED_LEVELING_UBL, bedlevel.lcd_map_control = false);
     }
 
     clear_lcd();
 
     // Re-initialize custom characters that may be re-used
     #if HAS_MARLINUI_HD44780
-      if (TERN1(AUTO_BED_LEVELING_UBL, !ubl.lcd_map_control))
+      if (TERN1(AUTO_BED_LEVELING_UBL, !bedlevel.lcd_map_control))
         set_custom_characters(on_status_screen() ? CHARSET_INFO : CHARSET_MENU);
     #endif
 
@@ -220,7 +218,7 @@ void MarlinUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, co
     screen_changed = true;
     TERN_(HAS_MARLINUI_U8GLIB, drawing_screen = false);
 
-    TERN_(HAS_LCD_MENU, encoder_direction_normal());
+    TERN_(HAS_MARLINUI_MENU, encoder_direction_normal());
 
     set_selection(false);
   }
@@ -276,11 +274,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 #if HAS_BUZZER
   void MarlinUI::completion_feedback(const bool good/*=true*/) {
     TERN_(HAS_TOUCH_SLEEP, wakeup_screen()); // Wake up on rotary encoder click...
-    if (good) {
-      BUZZ(100, 659);
-      BUZZ(100, 698);
-    }
-    else BUZZ(20, 440);
+    if (good) OKAY_BUZZ(); else ERR_BUZZ();
   }
 #endif
 
@@ -368,7 +362,8 @@ void MenuItem_confirm::select_screen(
   PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/
 ) {
   ui.defer_status_screen();
-  const bool ui_selection = ui.update_selection(), got_click = ui.use_click();
+  const bool ui_selection = !yes ? false : !no || ui.update_selection(),
+             got_click = ui.use_click();
   if (got_click || ui.should_draw()) {
     draw_select_screen(yes, no, ui_selection, pref, string, suff);
     if (got_click) {
@@ -378,4 +373,4 @@ void MenuItem_confirm::select_screen(
   }
 }
 
-#endif // HAS_LCD_MENU
+#endif // HAS_MARLINUI_MENU
