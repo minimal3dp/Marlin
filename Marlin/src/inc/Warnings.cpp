@@ -71,6 +71,10 @@
 
 #ifndef NO_AUTO_ASSIGN_WARNING
 
+  #if AUTO_ASSIGNED_LCD_SERIAL
+    #warning "Note: Auto-assigned LCD_SERIAL_PORT. (Define NO_AUTO_ASSIGN_WARNING to suppress this warning.)"
+  #endif
+
   #if AUTO_ASSIGNED_X2_STEPPER
     #warning "Note: Auto-assigned X2 STEP/DIR/ENABLE_PINs to unused En_STEP/DIR/ENABLE_PINs. (Define NO_AUTO_ASSIGN_WARNING to suppress this warning.)"
   #endif
@@ -757,7 +761,7 @@
 #endif
 
 /**
- * Maple environent
+ * Maple environment
  */
 #ifdef __STM32F1__
   #warning "Maple build environments are deprecated. Please use a non-Maple build environment. Report issues to the Marlin Firmware project."
