@@ -246,7 +246,11 @@
 #define MIN_STEP_ISR_FREQUENCY (MAX_STEP_ISR_FREQUENCY_1X / 2)
 
 #define ENABLE_COUNT (NUM_AXES + E_STEPPERS)
-typedef IF<(ENABLE_COUNT > 8), uint16_t, uint8_t>::type ena_mask_t;
+#if ENABLE_COUNT > 16
+  typedef uint32_t ena_mask_t;
+#else
+  typedef IF<(ENABLE_COUNT > 8), uint16_t, uint8_t>::type ena_mask_t;
+#endif
 
 // Axis flags type, for enabled state or other simple state
 typedef struct {
@@ -259,8 +263,6 @@ typedef struct {
       #endif
     };
   };
-  constexpr ena_mask_t linear_bits() { return _BV(NUM_AXES) - 1; }
-  constexpr ena_mask_t e_bits() { return (_BV(EXTRUDERS) - 1) << NUM_AXES; }
 } stepper_flags_t;
 
 // All the stepper enable pins
@@ -522,8 +524,7 @@ class Stepper {
     // Discard current block and free any resources
     FORCE_INLINE static void discard_current_block() {
       #if ENABLED(DIRECT_STEPPING)
-        if (IS_PAGE(current_block))
-          page_manager.free_page(current_block->page_idx);
+        if (current_block->is_page()) page_manager.free_page(current_block->page_idx);
       #endif
       current_block = nullptr;
       axis_did_move = 0;

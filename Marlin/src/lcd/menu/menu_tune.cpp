@@ -50,6 +50,8 @@
     #include "../dogm/marlinui_DOGM.h"
   #endif
 
+  // TODO: Replace fmsg with MSG_BABYSTEP_N and index substitution
+
   void _lcd_babystep(const AxisEnum axis, FSTR_P const fmsg) {
     if (ui.use_click()) return ui.goto_previous_screen_no_defer();
     if (ui.encoderPosition) {
@@ -74,12 +76,12 @@
           #if ENABLED(TFT_COLOR_UI)
             lcd_moveto(4, 3);
             lcd_put_u8str(GET_TEXT_F(MSG_BABYSTEP_TOTAL));
-            lcd_put_wchar(':');
+            lcd_put_lchar(':');
             lcd_moveto(10, 3);
           #else
             lcd_moveto(0, TERN(HAS_MARLINUI_U8GLIB, LCD_PIXEL_HEIGHT - MENU_FONT_DESCENT, LCD_HEIGHT - 1));
             lcd_put_u8str(GET_TEXT_F(MSG_BABYSTEP_TOTAL));
-            lcd_put_wchar(':');
+            lcd_put_lchar(':');
           #endif
           lcd_put_u8str(BABYSTEP_TO_STR(mps * babystep.axis_total[BS_TOTAL_IND(axis)]));
         }
@@ -223,13 +225,13 @@ void menu_tune() {
   //
   #if ENABLED(BABYSTEPPING)
     #if ENABLED(BABYSTEP_XY)
-      SUBMENU(MSG_BABYSTEP_X, []{ _lcd_babystep_go(_lcd_babystep_x); });
-      SUBMENU(MSG_BABYSTEP_Y, []{ _lcd_babystep_go(_lcd_babystep_y); });
+      SUBMENU_N(X_AXIS, MSG_BABYSTEP_N, []{ _lcd_babystep_go(_lcd_babystep_x); });
+      SUBMENU_N(Y_AXIS, MSG_BABYSTEP_N, []{ _lcd_babystep_go(_lcd_babystep_y); });
     #endif
     #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
       SUBMENU(MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
     #else
-      SUBMENU(MSG_BABYSTEP_Z, lcd_babystep_z);
+      SUBMENU_N(Z_AXIS, MSG_BABYSTEP_N, lcd_babystep_z);
     #endif
   #endif
 
