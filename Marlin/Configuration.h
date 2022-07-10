@@ -133,7 +133,7 @@
 //#define BLUETOOTH
 
 // Name displayed in the LCD "Ready" message and Info menu
-#define CUSTOM_MACHINE_NAME "E5P - HC SKR2 v2.1.20"
+#define CUSTOM_MACHINE_NAME "E5P - HC SKR2 v2.1.21"
 
 // Printer's unique ID, used by some programs to differentiate between machines.
 // Choose your own or use a service like https://www.uuidgenerator.net/version4
@@ -1132,7 +1132,7 @@
  * Override with M92
  *                                      X, Y, Z [, I [, J [, K...]]], E0 [, E1[, E2...]]
  */
-#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 800, 913.7255 }
+#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 800, 2157.22950 }
 
 /**
  * Default Max Feed Rate (linear=mm/s, rotational=°/s)
