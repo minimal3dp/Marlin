@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2022 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -20,14 +20,28 @@
  *
  */
 
-#include "../gcode.h"
-#include "../../module/planner.h"
+#include "../inc/MarlinConfigPre.h"
 
-/**
- * M400: Finish all moves
- */
-void GcodeSuite::M400() {
+#if ENABLED(MARLIN_TEST_BUILD)
 
-  planner.synchronize();
+#include "../module/endstops.h"
+#include "../module/motion.h"
+#include "../module/planner.h"
+#include "../module/settings.h"
+#include "../module/stepper.h"
+#include "../module/temperature.h"
 
+// Individual tests are localized in each module.
+// Each test produces its own report.
+
+// Startup tests are run at the end of setup()
+void runStartupTests() {
+  // Call post-setup tests here to validate behaviors.
 }
+
+// Periodic tests are run from within loop()
+void runPeriodicTests() {
+  // Call periodic tests here to validate behaviors.
+}
+
+#endif // MARLIN_TEST_BUILD
