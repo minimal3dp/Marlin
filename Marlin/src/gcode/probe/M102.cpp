@@ -19,36 +19,39 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-#include "../../inc/MarlinConfig.h"
-
-#if HAS_GCODE_M255
-
-#include "../gcode.h"
-#include "../../lcd/marlinui.h"
 
 /**
- * M255: Set the LCD sleep timeout (in minutes)
- *  S<minutes> - Period of inactivity required for display / backlight sleep
+ * M102.cpp - Configure Bed Distance Sensor
  */
-void GcodeSuite::M255() {
-  if (parser.seenval('S')) {
-    const int m = parser.value_int();
-    #if HAS_DISPLAY_SLEEP
-      ui.sleep_timeout_minutes = constrain(m, ui.sleep_timeout_min, ui.sleep_timeout_max);
-    #else
-      ui.backlight_timeout_minutes = constrain(m, ui.backlight_timeout_min, ui.backlight_timeout_max);
-    #endif
-  }
+
+#include "../../inc/MarlinConfig.h"
+
+#if ENABLED(BD_SENSOR)
+
+#include "../gcode.h"
+#include "../../feature/bedlevel/bdl/bdl.h"
+
+/**
+ * M102: Configure the Bed Distance Sensor
+ *
+ *   M102 S<10ths> : Set adjustable Z height in 10ths of a mm (e.g., 'M102 S4' enables adjusting for Z <= 0.4mm.)
+ *   M102 S0       : Disable adjustable Z height.
+ *
+ * Negative S values are commands:
+ *   M102 S-1       : Read sensor information
+ *   M102 S-5       : Read raw Calibration data
+ *   M102 S-6       : Start Calibration
+ */
+void GcodeSuite::M102() {
+  if (parser.seenval('S'))
+    bdl.config_state = parser.value_int();
   else
-    M255_report();
+    M102_report();
 }
 
-void GcodeSuite::M255_report(const bool forReplay/*=true*/) {
-  report_heading_etc(forReplay, F(STR_DISPLAY_SLEEP));
-  SERIAL_ECHOLNPGM("  M255 S",
-    TERN(HAS_DISPLAY_SLEEP, ui.sleep_timeout_minutes, ui.backlight_timeout_minutes),
-    " ; (minutes)"
-  );
+void GcodeSuite::M102_report(const bool forReplay/*=true*/) {
+  report_heading(forReplay, F("Bed Distance Sensor"));
+  SERIAL_ECHOLNPGM("  M102 S", bdl.config_state);
 }
 
-#endif // HAS_GCODE_M255
+#endif // BD_SENSOR

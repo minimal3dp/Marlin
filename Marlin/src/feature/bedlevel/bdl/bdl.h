@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2022 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -21,14 +21,16 @@
  */
 #pragma once
 
-// If no real or emulated EEPROM selected, fall back to SD emulation
-#if USE_FALLBACK_EEPROM
-  #define SDCARD_EEPROM_EMULATION
-#elif EITHER(I2C_EEPROM, SPI_EEPROM)
-  #define USE_SHARED_EEPROM 1
-#endif
+#include <stdint.h>
 
-// Some STM32F4 boards may lose steps when saving to EEPROM during print (PR #17946)
-#if defined(STM32F4xx) && PRINTCOUNTER_SAVE_INTERVAL > 0
-  #define PRINTCOUNTER_SYNC 1
-#endif
+class BDS_Leveling {
+public:
+  static int8_t config_state;
+  static uint8_t homing;
+  static void echo_name();
+  static void init(uint8_t _sda, uint8_t _scl, uint16_t delay_s);
+  static void process();
+  static float read();
+};
+
+extern BDS_Leveling bdl;
