@@ -28,7 +28,7 @@
 /**
  * Marlin release version identifier
  */
-#define SHORT_BUILD_VERSION "2.1.0.1 MRiscoC - M3DPv1"
+#define SHORT_BUILD_VERSION "2.1.0.1 MRiscoC - M3DPv2"
 
 /**
  * Verbose version identifier which should contain a reference to the location
@@ -41,10 +41,7 @@
  * here we define this default string as the date where the latest release
  * version was tagged.
  */
-//#define STRING_DISTRIBUTION_DATE "2022-08-08"
-
-#define STRING_DISTRIBUTION_DATE __DATE__
-#define STRING_DISTRIBUTION_TIME __TIME__
+//#define STRING_DISTRIBUTION_DATE "2022-09-06"
 
 /**
  * Defines a generic printer name to be output to the LCD after booting Marlin.
