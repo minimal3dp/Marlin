@@ -60,7 +60,7 @@
 // @section info
 
 // Author info of this build printed to the host during boot and M115
-#define STRING_CONFIG_H_AUTHOR "(wilsongis, SWX1 v2.1.26)" // Who made the changes.
+#define STRING_CONFIG_H_AUTHOR "(wilsongis, SWX1 v2.1.28)" // Who made the changes.
 #define CUSTOM_VERSION_FILE Version.h                      // Path from the root directory (no quotes)
 
 /**
@@ -1236,10 +1236,10 @@
  * When changing speed and direction, if the difference is less than the
  * value set here, it may happen instantaneously.
  */
-//#define CLASSIC_JERK
+#define CLASSIC_JERK
 #if ENABLED(CLASSIC_JERK)
-  #define DEFAULT_XJERK 10.0
-  #define DEFAULT_YJERK 10.0
+  #define DEFAULT_XJERK 8.0
+  #define DEFAULT_YJERK 8.0
   #define DEFAULT_ZJERK  0.3
   //#define DEFAULT_IJERK  0.3
   //#define DEFAULT_JJERK  0.3
@@ -1514,7 +1514,7 @@
 #define PROBING_MARGIN 12
 
 // X and Y axis travel speed (mm/min) between probes
-#define XY_PROBE_FEEDRATE (133 * 60)
+#define XY_PROBE_FEEDRATE (150 * 60)
 
 // Feedrate (mm/min) for the first approach when double-probing (MULTIPLE_PROBING == 2)
 #define Z_PROBE_FEEDRATE_FAST (4 * 60)
