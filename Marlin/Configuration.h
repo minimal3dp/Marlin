@@ -60,7 +60,7 @@
 // @section info
 
 // Author info of this build printed to the host during boot and M115
-#define STRING_CONFIG_H_AUTHOR "(wilsongis, SWX1 v2.1.33)" // Who made the changes.
+#define STRING_CONFIG_H_AUTHOR "(wilsongis, SWX1 v2.1.34)" // Who made the changes.
 #define CUSTOM_VERSION_FILE Version.h                      // Path from the root directory (no quotes)
 
 /**
@@ -1236,7 +1236,7 @@
  * When changing speed and direction, if the difference is less than the
  * value set here, it may happen instantaneously.
  */
-//#define CLASSIC_JERK
+#define CLASSIC_JERK
 #if ENABLED(CLASSIC_JERK)
   #define DEFAULT_XJERK 8.0
   #define DEFAULT_YJERK 8.0
@@ -1256,7 +1256,7 @@
   #endif
 #endif
 
-#define DEFAULT_EJERK 10.0 // May be used by Linear Advance
+#define DEFAULT_EJERK 5.0 // May be used by Linear Advance
 
 /**
  * Junction Deviation Factor
@@ -1511,7 +1511,7 @@
 
 // Most probes should stay away from the edges of the bed, but
 // with NOZZLE_AS_PROBE this can be negative for a wider probing area.
-#define PROBING_MARGIN 12
+#define PROBING_MARGIN 20
 
 // X and Y axis travel speed (mm/min) between probes
 #define XY_PROBE_FEEDRATE (150 * 60)
