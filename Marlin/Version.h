@@ -28,7 +28,7 @@
 /**
  * Marlin release version identifier
  */
-#define SHORT_BUILD_VERSION "2.1.0.1 MRiscoC - M3DPv3"
+#define SHORT_BUILD_VERSION "2.1.0.1 MRiscoC - M3DPv4"
 
 /**
  * Verbose version identifier which should contain a reference to the location
