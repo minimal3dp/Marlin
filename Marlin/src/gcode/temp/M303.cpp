@@ -48,7 +48,7 @@
 
 void GcodeSuite::M303() {
 
-  #if ANY(PID_DEBUG, PID_BED_DEBUG, PID_CHAMBER_DEBUG)
+  #if HAS_PID_DEBUG
     if (parser.seen_test('D')) {
       thermalManager.pid_debug_flag ^= true;
       SERIAL_ECHO_START();
@@ -86,7 +86,7 @@ void GcodeSuite::M303() {
 
   #if ENABLED(DWIN_LCD_PROUI)
     if (seenC) HMI_data.PidCycles = c;
-    if (seenS) { if (hid == H_BED) HMI_data.BedPidT = temp; else HMI_data.HotendPidT = temp; }
+    if (seenS) { if (hid == H_BED) HMI_data.BedPidT = temp; else TERN_(PIDTEMP, HMI_data.HotendPidT = temp); }
   #endif
 
   #if DISABLED(BUSY_WHILE_HEATING)
