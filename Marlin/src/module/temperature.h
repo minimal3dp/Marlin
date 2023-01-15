@@ -421,7 +421,8 @@ public:
 typedef struct HeaterInfo : public TempInfo {
   celsius_t target;
   uint8_t soft_pwm_amount;
-  bool is_below_target(const celsius_t offs=0) const { return (celsius < (target + offs)); }
+  bool is_below_target(const celsius_t offs=0) const { return (target - celsius > offs); } // celsius < target - offs
+  bool is_above_target(const celsius_t offs=0) const { return (celsius - target > offs); } // celsius > target + offs
 } heater_info_t;
 
 // A heater with PID stabilization
@@ -747,10 +748,6 @@ class Temperature {
       static uint8_t consecutive_low_temperature_error[HOTENDS];
     #endif
 
-    #if MILLISECONDS_PREHEAT_TIME > 0
-      static millis_t preheat_end_time[HOTENDS];
-    #endif
-
     #if HAS_FAN_LOGIC
       static millis_t fan_update_ms;
 
@@ -906,20 +903,38 @@ class Temperature {
     static void task();
 
     /**
-     * Preheating hotends
+     * Preheating hotends & bed
      */
-    #if MILLISECONDS_PREHEAT_TIME > 0
-      static bool is_preheating(const uint8_t E_NAME) {
-        return preheat_end_time[HOTEND_INDEX] && PENDING(millis(), preheat_end_time[HOTEND_INDEX]);
+    #if PREHEAT_TIME_HOTEND_MS > 0
+      static millis_t preheat_end_ms_hotend[HOTENDS];
+      static bool is_hotend_preheating(const uint8_t E_NAME) {
+        return preheat_end_ms_hotend[HOTEND_INDEX] && PENDING(millis(), preheat_end_ms_hotend[HOTEND_INDEX]);
       }
-      static void start_preheat_time(const uint8_t E_NAME) {
-        preheat_end_time[HOTEND_INDEX] = millis() + MILLISECONDS_PREHEAT_TIME;
+      static void start_hotend_preheat_time(const uint8_t E_NAME) {
+        preheat_end_ms_hotend[HOTEND_INDEX] = millis() + PREHEAT_TIME_HOTEND_MS;
       }
-      static void reset_preheat_time(const uint8_t E_NAME) {
-        preheat_end_time[HOTEND_INDEX] = 0;
+      static void reset_hotend_preheat_time(const uint8_t E_NAME) {
+        preheat_end_ms_hotend[HOTEND_INDEX] = 0;
       }
     #else
-      #define is_preheating(n) (false)
+      static bool is_hotend_preheating(const uint8_t) { return false; }
+    #endif
+
+    #if HAS_HEATED_BED
+      #if PREHEAT_TIME_BED_MS > 0
+        static millis_t preheat_end_ms_bed;
+        static bool is_bed_preheating() {
+          return preheat_end_ms_bed && PENDING(millis(), preheat_end_ms_bed);
+        }
+        static void start_bed_preheat_time() {
+          preheat_end_ms_bed = millis() + PREHEAT_TIME_BED_MS;
+        }
+        static void reset_bed_preheat_time() {
+          preheat_end_ms_bed = 0;
+        }
+      #else
+        static bool is_bed_preheating() { return false; }
+      #endif
     #endif
 
     //high level conversion routines, for use outside of temperature.cpp
@@ -948,11 +963,11 @@ class Temperature {
 
       static void setTargetHotend(const celsius_t celsius, const uint8_t E_NAME) {
         const uint8_t ee = HOTEND_INDEX;
-        #if MILLISECONDS_PREHEAT_TIME > 0
+        #if PREHEAT_TIME_HOTEND_MS > 0
           if (celsius == 0)
-            reset_preheat_time(ee);
+            reset_hotend_preheat_time(ee);
           else if (temp_hotend[ee].target == 0)
-            start_preheat_time(ee);
+            start_hotend_preheat_time(ee);
         #endif
         TERN_(AUTO_POWER_CONTROL, if (celsius) powerManager.power_on());
         temp_hotend[ee].target = _MIN(celsius, hotend_max_target(ee));
@@ -1015,6 +1030,12 @@ class Temperature {
       static void start_watching_bed() { TERN_(WATCH_BED, watch_bed.restart(degBed(), degTargetBed())); }
 
       static void setTargetBed(const celsius_t celsius) {
+        #if PREHEAT_TIME_BED_MS > 0
+          if (celsius == 0)
+            reset_bed_preheat_time();
+          else if (temp_bed.target == 0)
+            start_bed_preheat_time();
+        #endif
         TERN_(AUTO_POWER_CONTROL, if (celsius) powerManager.power_on());
         temp_bed.target = _MIN(celsius, BED_MAX_TARGET);
         start_watching_bed();
@@ -1252,8 +1273,8 @@ class Temperature {
     #endif
 
     static void _temp_error(const heater_id_t e, FSTR_P const serial_msg, FSTR_P const lcd_msg);
-    static void min_temp_error(const heater_id_t e);
-    static void max_temp_error(const heater_id_t e);
+    static void mintemp_error(const heater_id_t e);
+    static void maxtemp_error(const heater_id_t e);
 
     #define HAS_THERMAL_PROTECTION ANY(THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_COOLER)
 
