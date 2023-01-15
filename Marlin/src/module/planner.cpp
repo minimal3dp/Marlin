@@ -198,13 +198,12 @@ float Planner::mm_per_step[DISTINCT_AXES];      // (mm) Millimeters per step
   constexpr bool Planner::leveling_active;
 #endif
 
-skew_factor_t Planner::skew_factor; // Initialized by settings.load()
+#if ENABLED(SKEW_CORRECTION)
+  skew_factor_t Planner::skew_factor; // Initialized by settings.load()
+#endif
 
 #if ENABLED(AUTOTEMP)
-  celsius_t Planner::autotemp_max = 250,
-            Planner::autotemp_min = 210;
-  float Planner::autotemp_factor = 0.1f;
-  bool Planner::autotemp_enabled = false;
+  autotemp_t Planner::autotemp = { AUTOTEMP_MIN, AUTOTEMP_MAX, AUTOTEMP_FACTOR, false };
 #endif
 
 // private:
@@ -227,7 +226,7 @@ float Planner::previous_nominal_speed;
 #endif
 
 #if ENABLED(LIN_ADVANCE)
-  float Planner::extruder_advance_K[EXTRUDERS]; // Initialized by settings.load()
+  float Planner::extruder_advance_K[DISTINCT_E]; // Initialized by settings.load()
 #endif
 
 #if HAS_POSITION_FLOAT
@@ -793,19 +792,21 @@ void Planner::calculate_trapezoid_for_block(block_t * const block, const_float_t
     uint32_t cruise_rate = block->nominal_rate;
   #endif
 
-  const int32_t accel = block->acceleration_steps_per_s2;
-
   // Steps for acceleration, plateau and deceleration
   int32_t plateau_steps = block->step_event_count;
   uint32_t accelerate_steps = 0,
            decelerate_steps = 0;
 
+  const int32_t accel = block->acceleration_steps_per_s2;
+  float inverse_accel = 0.0f;
   if (accel != 0) {
-    // Steps required for acceleration, deceleration to/from nominal rate
-    const float nominal_rate_sq = sq(float(block->nominal_rate));
-    float accelerate_steps_float = (nominal_rate_sq - sq(float(initial_rate))) * (0.5f / accel);
+    inverse_accel = 1.0f / accel;
+    const float half_inverse_accel = 0.5f * inverse_accel,
+                nominal_rate_sq = sq(float(block->nominal_rate)),
+                // Steps required for acceleration, deceleration to/from nominal rate
+                decelerate_steps_float = half_inverse_accel * (nominal_rate_sq - sq(float(final_rate)));
+          float accelerate_steps_float = half_inverse_accel * (nominal_rate_sq - sq(float(initial_rate)));
     accelerate_steps = CEIL(accelerate_steps_float);
-    const float decelerate_steps_float = (nominal_rate_sq - sq(float(final_rate))) * (0.5f / accel);
     decelerate_steps = FLOOR(decelerate_steps_float);
 
     // Steps between acceleration and deceleration, if any
@@ -828,9 +829,10 @@ void Planner::calculate_trapezoid_for_block(block_t * const block, const_float_t
   }
 
   #if ENABLED(S_CURVE_ACCELERATION)
+    const float rate_factor = inverse_accel * (STEPPER_TIMER_RATE);
     // Jerk controlled speed requires to express speed versus time, NOT steps
-    uint32_t acceleration_time = (float(cruise_rate - initial_rate) / accel) * (STEPPER_TIMER_RATE),
-             deceleration_time = (float(cruise_rate - final_rate) / accel) * (STEPPER_TIMER_RATE),
+    uint32_t acceleration_time = rate_factor * float(cruise_rate - initial_rate),
+             deceleration_time = rate_factor * float(cruise_rate - final_rate),
     // And to offload calculations from the ISR, we also calculate the inverse of those times here
              acceleration_time_inverse = get_period_inverse(acceleration_time),
              deceleration_time_inverse = get_period_inverse(deceleration_time);
@@ -851,7 +853,7 @@ void Planner::calculate_trapezoid_for_block(block_t * const block, const_float_t
 
   #if ENABLED(LIN_ADVANCE)
     if (block->la_advance_rate) {
-      const float comp = extruder_advance_K[block->extruder] * block->steps.e / block->step_event_count;
+      const float comp = extruder_advance_K[E_INDEX_N(block->extruder)] * block->steps.e / block->step_event_count;
       block->max_adv_steps = cruise_rate * comp;
       block->final_adv_steps = final_rate * comp;
     }
@@ -1279,16 +1281,10 @@ void Planner::recalculate(TERN_(HINTS_SAFE_EXIT_SPEED, const_float_t safe_exit_s
 
   void Planner::sync_fan_speeds(uint8_t (&fan_speed)[FAN_COUNT]) {
 
-    #if FAN_MIN_PWM != 0 || FAN_MAX_PWM != 255
-      #define CALC_FAN_SPEED(f) (fan_speed[f] ? map(fan_speed[f], 1, 255, FAN_MIN_PWM, FAN_MAX_PWM) : FAN_OFF_PWM)
-    #else
-      #define CALC_FAN_SPEED(f) (fan_speed[f] ?: FAN_OFF_PWM)
-    #endif
-
     #if ENABLED(FAN_SOFT_PWM)
-      #define _FAN_SET(F) thermalManager.soft_pwm_amount_fan[F] = CALC_FAN_SPEED(F);
+      #define _FAN_SET(F) thermalManager.soft_pwm_amount_fan[F] = CALC_FAN_SPEED(fan_speed[F]);
     #else
-      #define _FAN_SET(F) hal.set_pwm_duty(pin_t(FAN##F##_PIN), CALC_FAN_SPEED(F));
+      #define _FAN_SET(F) hal.set_pwm_duty(pin_t(FAN##F##_PIN), CALC_FAN_SPEED(fan_speed[F]));
     #endif
     #define FAN_SET(F) do{ kickstart_fan(fan_speed, ms, F); _FAN_SET(F); }while(0)
 
@@ -1303,13 +1299,13 @@ void Planner::recalculate(TERN_(HINTS_SAFE_EXIT_SPEED, const_float_t safe_exit_s
 
     void Planner::kickstart_fan(uint8_t (&fan_speed)[FAN_COUNT], const millis_t &ms, const uint8_t f) {
       static millis_t fan_kick_end[FAN_COUNT] = { 0 };
-      if (fan_speed[f]) {
+      if (fan_speed[f] > FAN_OFF_PWM) {
         if (fan_kick_end[f] == 0) {
           fan_kick_end[f] = ms + FAN_KICKSTART_TIME;
-          fan_speed[f] = 255;
+          fan_speed[f] = FAN_KICKSTART_POWER;
         }
         else if (PENDING(ms, fan_kick_end[f]))
-          fan_speed[f] = 255;
+          fan_speed[f] = FAN_KICKSTART_POWER;
       }
       else
         fan_kick_end[f] = 0;
@@ -1437,8 +1433,8 @@ void Planner::check_axes_activity() {
   #if ENABLED(AUTOTEMP_PROPORTIONAL)
     void Planner::_autotemp_update_from_hotend() {
       const celsius_t target = thermalManager.degTargetHotend(active_extruder);
-      autotemp_min = target + AUTOTEMP_MIN_P;
-      autotemp_max = target + AUTOTEMP_MAX_P;
+      autotemp.min = target + AUTOTEMP_MIN_P;
+      autotemp.max = target + AUTOTEMP_MAX_P;
     }
   #endif
 
@@ -1449,8 +1445,8 @@ void Planner::check_axes_activity() {
    */
   void Planner::autotemp_update() {
     _autotemp_update_from_hotend();
-    autotemp_factor = TERN(AUTOTEMP_PROPORTIONAL, AUTOTEMP_FACTOR_P, 0);
-    autotemp_enabled = autotemp_factor != 0;
+    autotemp.factor = TERN(AUTOTEMP_PROPORTIONAL, AUTOTEMP_FACTOR_P, 0);
+    autotemp.enabled = autotemp.factor != 0;
   }
 
   /**
@@ -1460,13 +1456,13 @@ void Planner::check_axes_activity() {
   void Planner::autotemp_M104_M109() {
     _autotemp_update_from_hotend();
 
-    if (parser.seenval('S')) autotemp_min = parser.value_celsius();
-    if (parser.seenval('B')) autotemp_max = parser.value_celsius();
+    if (parser.seenval('S')) autotemp.min = parser.value_celsius();
+    if (parser.seenval('B')) autotemp.max = parser.value_celsius();
 
     // When AUTOTEMP_PROPORTIONAL is enabled, F0 disables autotemp.
     // Normally, leaving off F also disables autotemp.
-    autotemp_factor = parser.seen('F') ? parser.value_float() : TERN(AUTOTEMP_PROPORTIONAL, AUTOTEMP_FACTOR_P, 0);
-    autotemp_enabled = autotemp_factor != 0;
+    autotemp.factor = parser.seen('F') ? parser.value_float() : TERN(AUTOTEMP_PROPORTIONAL, AUTOTEMP_FACTOR_P, 0);
+    autotemp.enabled = autotemp.factor != 0;
   }
 
   /**
@@ -1477,8 +1473,8 @@ void Planner::check_axes_activity() {
   void Planner::autotemp_task() {
     static float oldt = 0.0f;
 
-    if (!autotemp_enabled) return;
-    if (thermalManager.degTargetHotend(active_extruder) < autotemp_min - 2) return; // Below the min?
+    if (!autotemp.enabled) return;
+    if (thermalManager.degTargetHotend(active_extruder) < autotemp.min - 2) return; // Below the min?
 
     float high = 0.0f;
     for (uint8_t b = block_buffer_tail; b != block_buffer_head; b = next_block_index(b)) {
@@ -1489,8 +1485,8 @@ void Planner::check_axes_activity() {
       }
     }
 
-    float t = autotemp_min + high * autotemp_factor;
-    LIMIT(t, autotemp_min, autotemp_max);
+    float t = autotemp.min + high * autotemp.factor;
+    LIMIT(t, autotemp.min, autotemp.max);
     if (t < oldt) t = t * (1.0f - (AUTOTEMP_OLDWEIGHT)) + oldt * (AUTOTEMP_OLDWEIGHT);
     oldt = t;
     thermalManager.setTargetHotend(t, active_extruder);
@@ -1725,6 +1721,13 @@ void Planner::endstop_triggered(const AxisEnum axis) {
 float Planner::triggered_position_mm(const AxisEnum axis) {
   const float result = DIFF_TERN(BACKLASH_COMPENSATION, stepper.triggered_position(axis), backlash.get_applied_steps(axis));
   return result * mm_per_step[axis];
+}
+
+bool Planner::busy() {
+  return (has_blocks_queued() || cleaning_buffer_counter
+      || TERN0(EXTERNAL_CLOSED_LOOP_CONTROLLER, CLOSED_LOOP_WAITING())
+      || TERN0(HAS_SHAPING, stepper.input_shaping_busy())
+  );
 }
 
 void Planner::finish_and_disable() {
@@ -2170,7 +2173,7 @@ bool Planner::_populate_block(
               sq(steps_dist_mm.x), + sq(steps_dist_mm.y), + sq(steps_dist_mm.z),
             + sq(steps_dist_mm.i), + sq(steps_dist_mm.j), + sq(steps_dist_mm.k),
             + sq(steps_dist_mm.u), + sq(steps_dist_mm.v), + sq(steps_dist_mm.w)
-          );
+          )
         #elif ENABLED(FOAMCUTTER_XYUV)
           #if HAS_J_AXIS
             // Special 5 axis kinematics. Return the largest distance move from either X/Y or I/J plane
@@ -2240,7 +2243,6 @@ bool Planner::_populate_block(
   if (block->step_event_count < MIN_STEPS_PER_SEGMENT) return false;
 
   TERN_(MIXING_EXTRUDER, mixer.populate_block(block->b_color));
-
 
   #if HAS_FAN
     FANS_LOOP(i) block->fan_speed[i] = thermalManager.fan_speed[i];
@@ -2538,7 +2540,7 @@ bool Planner::_populate_block(
        *
        * de > 0                       : Extruder is running forward (e.g., for "Wipe while retracting" (Slic3r) or "Combing" (Cura) moves)
        */
-      use_advance_lead = esteps && extruder_advance_K[extruder] && de > 0;
+      use_advance_lead = esteps && extruder_advance_K[E_INDEX_N(extruder)] && de > 0;
 
       if (use_advance_lead) {
         float e_D_ratio = (target_float.e - position_float.e) /
@@ -2554,7 +2556,7 @@ bool Planner::_populate_block(
           use_advance_lead = false;
         else {
           // Scale E acceleration so that it will be possible to jump to the advance speed.
-          const uint32_t max_accel_steps_per_s2 = MAX_E_JERK(extruder) / (extruder_advance_K[extruder] * e_D_ratio) * steps_per_mm;
+          const uint32_t max_accel_steps_per_s2 = MAX_E_JERK(extruder) / (extruder_advance_K[E_INDEX_N(extruder)] * e_D_ratio) * steps_per_mm;
           if (TERN0(LA_DEBUG, accel > max_accel_steps_per_s2))
             SERIAL_ECHOLNPGM("Acceleration limited.");
           NOMORE(accel, max_accel_steps_per_s2);
@@ -2591,7 +2593,7 @@ bool Planner::_populate_block(
 
     if (use_advance_lead) {
       // the Bresenham algorithm will convert this step rate into extruder steps
-      block->la_advance_rate = extruder_advance_K[extruder] * block->acceleration_steps_per_s2;
+      block->la_advance_rate = extruder_advance_K[E_INDEX_N(extruder)] * block->acceleration_steps_per_s2;
 
       // reduce LA ISR frequency by calling it only often enough to ensure that there will
       // never be more than four extruder steps per call
@@ -3159,24 +3161,75 @@ bool Planner::buffer_line(const xyze_pos_t &cart, const_feedRate_t fr_mm_s
         ? xyz_pos_t(cart_dist_mm).magnitude()
         : TERN0(HAS_Z_AXIS, ABS(cart_dist_mm.z));
 
-    #if ENABLED(SCARA_FEEDRATE_SCALING)
+    #if DISABLED(FEEDRATE_SCALING)
+
+      const feedRate_t feedrate = fr_mm_s;
+
+    #elif IS_SCARA
+
       // For SCARA scale the feedrate from mm/s to degrees/s
       // i.e., Complete the angular vector in the given time.
       const float duration_recip = hints.inv_duration ?: fr_mm_s / ph.millimeters;
       const xyz_pos_t diff = delta - position_float;
       const feedRate_t feedrate = diff.magnitude() * duration_recip;
-    #else
-      const feedRate_t feedrate = fr_mm_s;
-    #endif
+
+    #elif ENABLED(POLAR)
+
+      /**
+       * Motion problem for Polar axis near center / origin:
+       *
+       * 3D printing:
+       * Movements very close to the center of the polar axis take more time than others.
+       * This brief delay results in more material deposition due to the pressure in the nozzle.
+       *
+       * Current Kinematics and feedrate scaling deals with this by making the movement as fast
+       * as possible. It works for slow movements but doesn't work well with fast ones. A more
+       * complicated extrusion compensation must be implemented.
+       *
+       * Ideally, it should estimate that a long rotation near the center is ahead and will cause
+       * unwanted deposition. Therefore it can compensate the extrusion beforehand.
+       *
+       * Laser cutting:
+       * Same thing would be a problem for laser engraving too. As it spends time rotating at the
+       * center point, more likely it will burn more material than it should. Therefore similar
+       * compensation would be implemented for laser-cutting operations.
+       *
+       * Milling:
+       * This shouldn't be a problem for cutting/milling operations.
+       */
+      feedRate_t calculated_feedrate = fr_mm_s;
+      const xyz_pos_t diff = delta - position_float;
+      if (!NEAR_ZERO(diff.b)) {
+        if (delta.a <= POLAR_FAST_RADIUS )
+          calculated_feedrate = settings.max_feedrate_mm_s[Y_AXIS];
+        else {
+            // Normalized vector of movement
+            const float diffBLength = ABS((2.0f * PI * diff.a) * (diff.b / 360.0f)),
+                        diffTheta = DEGREES(ATAN2(diff.a, diffBLength)),
+                        normalizedTheta = 1.0f - (ABS(diffTheta > 90.0f ? 180.0f - diffTheta : diffTheta) / 90.0f);
+
+            // Normalized position along the radius
+            const float radiusRatio = PRINTABLE_RADIUS/delta.a;
+            calculated_feedrate += (fr_mm_s * radiusRatio * normalizedTheta);
+        }
+      }
+      const feedRate_t feedrate = calculated_feedrate;
+
+    #endif // POLAR && FEEDRATE_SCALING
+
     TERN_(HAS_EXTRUDERS, delta.e = machine.e);
     if (buffer_segment(delta OPTARG(HAS_DIST_MM_ARG, cart_dist_mm), feedrate, extruder, ph)) {
       position_cart = cart;
       return true;
     }
     return false;
-  #else
+
+  #else // !IS_KINEMATIC
+
     return buffer_segment(machine, fr_mm_s, extruder, hints);
+
   #endif
+
 } // buffer_line()
 
 #if ENABLED(DIRECT_STEPPING)

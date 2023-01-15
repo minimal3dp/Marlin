@@ -121,6 +121,10 @@
   #include "feature/bltouch.h"
 #endif
 
+#if ENABLED(BD_SENSOR)
+  #include "feature/bedlevel/bdl/bdl.h"
+#endif
+
 #if ENABLED(POLL_JOG)
   #include "feature/joystick.h"
 #endif
@@ -164,6 +168,8 @@
   #include "module/polargraph.h"
 #elif IS_SCARA
   #include "module/scara.h"
+#elif ENABLED(POLAR)
+  #include "module/polar.h"
 #endif
 
 #if HAS_LEVELING
@@ -228,7 +234,7 @@
   #include "feature/password/password.h"
 #endif
 
-#if ENABLED(DGUS_LCD_UI_MKS)
+#if DGUS_LCD_UI_MKS
   #include "lcd/extui/dgus/DGUSScreenHandler.h"
 #endif
 
@@ -343,7 +349,7 @@ void startOrResumeJob() {
     TERN_(GCODE_REPEAT_MARKERS, repeat.reset());
     TERN_(CANCEL_OBJECTS, cancelable.reset());
     TERN_(LCD_SHOW_E_TOTAL, e_move_accumulator = 0);
-    #if BOTH(LCD_SET_PROGRESS_MANUALLY, USE_M73_REMAINING_TIME)
+    #if ENABLED(SET_REMAINING_TIME)
       ui.reset_remaining_time();
     #endif
   }
@@ -484,7 +490,7 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
     }
   #endif
 
-  #if HAS_FREEZE_PIN
+  #if ENABLED(FREEZE_FEATURE)
     stepper.frozen = READ(FREEZE_PIN) == FREEZE_STATE;
   #endif
 
@@ -778,6 +784,9 @@ void idle(bool no_stepper_sleep/*=false*/) {
     static uint16_t idle_depth = 0;
     if (++idle_depth > 5) SERIAL_ECHOLNPGM("idle() call depth: ", idle_depth);
   #endif
+
+  // Bed Distance Sensor task
+  TERN_(BD_SENSOR, bdl.process());
 
   // Core Marlin activities
   manage_inactivity(no_stepper_sleep);
@@ -1630,6 +1639,10 @@ void setup() {
 
   #if HAS_TRINAMIC_CONFIG && DISABLED(PSU_DEFAULT_OFF)
     SETUP_RUN(test_tmc_connection());
+  #endif
+
+  #if ENABLED(BD_SENSOR)
+    SETUP_RUN(bdl.init(I2C_BD_SDA_PIN, I2C_BD_SCL_PIN, I2C_BD_DELAY));
   #endif
 
   marlin_state = MF_RUNNING;
