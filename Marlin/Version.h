@@ -46,7 +46,7 @@
 /**
  * Defines a generic printer name to be output to the LCD after booting Marlin.
  */
-#define MACHINE_NAME "SWX1 v2.1.34" // Latest Marlin Updates
+#define MACHINE_NAME "SWX1 v2.1.35" // Latest Marlin Updates
 
 /**
  * The SOURCE_CODE_URL is the location where users will find the Marlin Source
