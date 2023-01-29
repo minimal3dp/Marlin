@@ -313,10 +313,12 @@ namespace Language_it {
   LSTR MSG_MOVE_01MM                      = _UxGT("Muovi di 0.1mm");
   LSTR MSG_MOVE_1MM                       = _UxGT("Muovi di 1mm");
   LSTR MSG_MOVE_10MM                      = _UxGT("Muovi di 10mm");
+  LSTR MSG_MOVE_50MM                      = _UxGT("Muovi di 50mm");
   LSTR MSG_MOVE_100MM                     = _UxGT("Muovi di 100mm");
   LSTR MSG_MOVE_0001IN                    = _UxGT("Muovi di 0.001\"");
   LSTR MSG_MOVE_001IN                     = _UxGT("Muovi di 0.01\"");
   LSTR MSG_MOVE_01IN                      = _UxGT("Muovi di 0.1\"");
+  LSTR MSG_MOVE_05IN                      = _UxGT("Muovi di 0.5\"");
   LSTR MSG_MOVE_1IN                       = _UxGT("Muovi di 1\"");
   LSTR MSG_SPEED                          = _UxGT("Velocità");
   LSTR MSG_BED_Z                          = _UxGT("Piatto Z");
@@ -354,10 +356,10 @@ namespace Language_it {
   LSTR MSG_PID_CYCLE                      = _UxGT("Ciclo PID");
   LSTR MSG_PID_AUTOTUNE_DONE              = _UxGT("Calibr.PID eseguita");
   LSTR MSG_PID_AUTOTUNE_FAILED            = _UxGT("Calibr.PID fallito!");
-  LSTR MSG_BAD_EXTRUDER_NUM               = _UxGT("Estrusore invalido.");
+  LSTR MSG_BAD_HEATER_ID                  = _UxGT("Estrusore invalido.");
   LSTR MSG_TEMP_TOO_HIGH                  = _UxGT("Temp.troppo alta.");
   LSTR MSG_TIMEOUT                        = _UxGT("Tempo scaduto.");
-  LSTR MSG_PID_BAD_EXTRUDER_NUM           = _UxGT("Calibrazione fallita! Estrusore errato.");
+  LSTR MSG_PID_BAD_HEATER_ID              = _UxGT("Calibrazione fallita! Estrusore errato.");
   LSTR MSG_PID_TEMP_TOO_HIGH              = _UxGT("Calibrazione fallita! Temperatura troppo alta.");
   LSTR MSG_PID_TIMEOUT                    = _UxGT("Calibrazione fallita! Tempo scaduto.");
   LSTR MSG_MPC_MEASURING_AMBIENT          = _UxGT("Testing heat loss");
@@ -368,7 +370,6 @@ namespace Language_it {
   LSTR MSG_SENSOR_RESPONSIVENESS_E        = _UxGT("Reattiv.Sens. *");
   LSTR MSG_MPC_AMBIENT_XFER_COEFF_E       = _UxGT("H ambiente *");
   LSTR MSG_MPC_AMBIENT_XFER_COEFF_FAN_E   = _UxGT("H Amb. vent. *");
-  LSTR MSG_SELECT                         = _UxGT("Seleziona");
   LSTR MSG_SELECT_E                       = _UxGT("Seleziona *");
   LSTR MSG_ACC                            = _UxGT("Accel");
   LSTR MSG_JERK                           = _UxGT("Jerk");
@@ -563,7 +564,7 @@ namespace Language_it {
   LSTR MSG_MANUAL_DEPLOY                  = _UxGT("Estendi Sonda-Z");
   LSTR MSG_BLTOUCH_STOW                   = _UxGT("Ritrai BLTouch");
   LSTR MSG_MANUAL_STOW                    = _UxGT("Ritrai Sonda-Z");
-  LSTR MSG_HOME_FIRST                     = _UxGT("Home %s%s%s prima");
+  LSTR MSG_HOME_FIRST                     = _UxGT("Home %s prima");
   LSTR MSG_ZPROBE_SETTINGS                = _UxGT("Impostazioni sonda");
   LSTR MSG_ZPROBE_OFFSETS                 = _UxGT("Offsets sonda");
   LSTR MSG_ZPROBE_XOFFSET                 = _UxGT("Offset X sonda");

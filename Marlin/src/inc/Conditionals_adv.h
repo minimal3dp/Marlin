@@ -79,6 +79,9 @@
   #define SERVO_DELAY { 50 }
 #endif
 
+#if !HAS_BED_PROBE
+  #undef BABYSTEP_ZPROBE_OFFSET
+#endif
 #if !HAS_STOWABLE_PROBE
   #undef PROBE_DEPLOY_STOW_MENU
 #endif
@@ -653,6 +656,10 @@
   #define HAS_MEDIA_SUBCALLS 1
 #endif
 
+#if ANY(SHOW_PROGRESS_PERCENT, SHOW_ELAPSED_TIME, SHOW_REMAINING_TIME, SHOW_INTERACTION_TIME)
+  #define HAS_EXTRA_PROGRESS 1
+#endif
+
 #if HAS_PRINT_PROGRESS && EITHER(PRINT_PROGRESS_SHOW_DECIMALS, SHOW_REMAINING_TIME)
   #define HAS_PRINT_PROGRESS_PERMYRIAD 1
 #endif
@@ -994,8 +1001,8 @@
             #undef CALIBRATION_MEASURE_IMIN
             #undef CALIBRATION_MEASURE_IMAX
             #if NUM_AXES < 3
-              #undef Z_IDLE_HEIGHT
               #undef STEALTHCHOP_Z
+              #undef Z_IDLE_HEIGHT
               #undef Z_PROBE_SLED
               #undef Z_SAFE_HOMING
               #undef HOME_Z_FIRST
@@ -1005,6 +1012,7 @@
               #undef CNC_WORKSPACE_PLANES
               #if NUM_AXES < 2
                 #undef STEALTHCHOP_Y
+                #undef QUICK_HOME
               #endif
             #endif
           #endif
@@ -1077,7 +1085,7 @@
  */
 #ifndef LCD_SERIAL_PORT
   #if HAS_DWIN_E3V2 || IS_DWIN_MARLINUI || HAS_DGUS_LCD
-    #if MB(BTT_SKR_MINI_E3_V1_0, BTT_SKR_MINI_E3_V1_2, BTT_SKR_MINI_E3_V2_0, BTT_SKR_MINI_E3_V3_0, BTT_SKR_E3_TURBO)
+    #if MB(BTT_SKR_MINI_E3_V1_0, BTT_SKR_MINI_E3_V1_2, BTT_SKR_MINI_E3_V2_0, BTT_SKR_MINI_E3_V3_0, BTT_SKR_E3_TURBO, BTT_OCTOPUS_V1_1)
       #define LCD_SERIAL_PORT 1
     #elif MB(CREALITY_V24S1_301, CREALITY_V24S1_301F4, CREALITY_V423, MKS_ROBIN)
       #define LCD_SERIAL_PORT 2 // Creality Ender3S1, MKS Robin
@@ -1119,15 +1127,11 @@
 #endif
 
 // Input shaping
-#if ENABLED(INPUT_SHAPING)
-  #if !HAS_Y_AXIS
-    #undef SHAPING_FREQ_Y
-    #undef SHAPING_BUFFER_Y
-  #endif
-  #ifdef SHAPING_FREQ_X
-    #define HAS_SHAPING_X 1
-  #endif
-  #ifdef SHAPING_FREQ_Y
-    #define HAS_SHAPING_Y 1
-  #endif
+#if !HAS_Y_AXIS
+  #undef INPUT_SHAPING_Y
+  #undef SHAPING_FREQ_Y
+  #undef SHAPING_BUFFER_Y
+#endif
+#if EITHER(INPUT_SHAPING_X, INPUT_SHAPING_Y)
+  #define HAS_SHAPING 1
 #endif
