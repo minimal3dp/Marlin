@@ -849,7 +849,9 @@ static_assert(COUNT(arm) == LOGICAL_AXES, "AXIS_RELATIVE_MODES must contain " _L
  * Validate that the bed size fits
  */
 static_assert(X_MAX_LENGTH >= X_BED_SIZE, "Movement bounds (X_MIN_POS, X_MAX_POS) are too narrow to contain X_BED_SIZE.");
-static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS) are too narrow to contain Y_BED_SIZE.");
+#if HAS_Y_AXIS
+  static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS) are too narrow to contain Y_BED_SIZE.");
+#endif
 
 /**
  * Granular software endstops (Marlin >= 1.1.7)
@@ -944,7 +946,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #error "SET_PROGRESS_MANUALLY requires at least one of SET_PROGRESS_PERCENT, SET_REMAINING_TIME, SET_INTERACTION_TIME to be enabled."
 #endif
 
-#if HAS_LCDPRINT && LCD_HEIGHT < 4 && ANY(SHOW_PROGRESS_PERCENT, SHOW_ELAPSED_TIME, SHOW_REMAINING_TIME, SHOW_INTERACTION_TIME)
+#if HAS_LCDPRINT && HAS_EXTRA_PROGRESS && LCD_HEIGHT < 4
   #error "Displays with fewer than 4 rows of text can't show progress values."
 #endif
 
@@ -1808,7 +1810,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
       #error "BLTOUCH requires DEACTIVATE_SERVOS_AFTER_MOVE to be to disabled. Please update your Configuration.h file."
     #endif
 
-    #if HAS_INVERTED_PROBE
+    #if ENABLED(INVERTED_PROBE_STATE)
       #if !Z_MIN_PROBE_ENDSTOP_INVERTING
         #error "BLTOUCH requires Z_MIN_PROBE_ENDSTOP_INVERTING set to true."
       #endif
@@ -1816,7 +1818,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
       #error "BLTOUCH requires Z_MIN_PROBE_ENDSTOP_INVERTING set to false."
     #endif
     #if ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
-      #if HAS_INVERTED_PROBE
+      #if ENABLED(INVERTED_PROBE_STATE)
         #if !Z_MIN_ENDSTOP_INVERTING
           #error "BLTOUCH requires Z_MIN_ENDSTOP_INVERTING set to true."
         #endif
@@ -1848,7 +1850,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #elif !HAS_RESUME_CONTINUE
       #error "TOUCH_MI_PROBE currently requires an LCD controller or EMERGENCY_PARSER."
     #endif
-    #if HAS_INVERTED_PROBE
+    #if ENABLED(INVERTED_PROBE_STATE)
       #if !Z_MIN_PROBE_ENDSTOP_INVERTING
         #error "TOUCH_MI_PROBE requires Z_MIN_PROBE_ENDSTOP_INVERTING set to true."
       #endif
@@ -1856,7 +1858,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
       #error "TOUCH_MI_PROBE requires Z_MIN_PROBE_ENDSTOP_INVERTING set to false."
     #endif
     #if ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
-      #if HAS_INVERTED_PROBE
+      #if ENABLED(INVERTED_PROBE_STATE)
         #if !Z_MIN_ENDSTOP_INVERTING
           #error "TOUCH_MI_PROBE requires Z_MIN_ENDSTOP_INVERTING set to true."
         #endif
@@ -4379,10 +4381,17 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
     #error "Input Shaping is not compatible with POLARGRAPH kinematics."
   #elif ENABLED(DIRECT_STEPPING)
     #error "Input Shaping is not compatible with DIRECT_STEPPING."
-  #elif ENABLED(INPUT_SHAPING_X) && ANY(CORE_IS_XY, CORE_IS_XZ, MARKFORGED_XY, MARKFORGED_YX)
-    #error "INPUT_SHAPING_X is not supported with COREXY, COREYX, COREXZ, COREZX, or MARKFORGED_*."
-  #elif ENABLED(INPUT_SHAPING_Y) && ANY(CORE_IS_XY, CORE_IS_YZ, MARKFORGED_XY, MARKFORGED_YX)
-    #error "INPUT_SHAPING_Y is not supported with COREXY, COREYX, COREYZ, COREZY, or MARKFORGED_*."
+  #elif BOTH(INPUT_SHAPING_X, CORE_IS_XZ)
+    #error "INPUT_SHAPING_X is not supported with COREXZ."
+  #elif BOTH(INPUT_SHAPING_Y, CORE_IS_YZ)
+    #error "INPUT_SHAPING_Y is not supported with COREYZ."
+  #elif ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX)
+    #if !BOTH(INPUT_SHAPING_X, INPUT_SHAPING_Y)
+      #error "INPUT_SHAPING_X and INPUT_SHAPING_Y must both be enabled for COREXY, COREYX, or MARKFORGED_*."
+    #else
+      static_assert(SHAPING_FREQ_X == SHAPING_FREQ_Y, "SHAPING_FREQ_X and SHAPING_FREQ_Y must be the same for COREXY / COREYX / MARKFORGED_*.");
+      static_assert(SHAPING_ZETA_X == SHAPING_ZETA_Y, "SHAPING_ZETA_X and SHAPING_ZETA_Y must be the same for COREXY / COREYX / MARKFORGED_*.");
+    #endif
   #endif
 
   #ifdef __AVR__
