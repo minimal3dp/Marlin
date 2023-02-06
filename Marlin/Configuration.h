@@ -60,7 +60,7 @@
 // @section info
 
 // Author info of this build printed to the host during boot and M115
-#define STRING_CONFIG_H_AUTHOR "(Minimal3DP, SWX1-SKR2 v2.1.2" // Who made the changes.
+#define STRING_CONFIG_H_AUTHOR "(Minimal3DP, SWX1-SKR2 v2.1.3" // Who made the changes.
 //#define CUSTOM_VERSION_FILE Version.h                      // Path from the root directory (no quotes)
 
 /**
@@ -111,7 +111,7 @@
  *
  * :[2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000]
  */
-#define BAUDRATE 115200
+#define BAUDRATE 250000
 
 // #define BAUD_RATE_GCODE     // Enable G-code M575 to set the baud rate
 
@@ -134,7 +134,7 @@
 // #define BLUETOOTH
 
 // Name displayed in the LCD "Ready" message and Info menu
-// #define CUSTOM_MACHINE_NAME "3D Printer"
+#define CUSTOM_MACHINE_NAME "Sidewinder X1"
 
 // Printer's unique ID, used by some programs to differentiate between machines.
 // Choose your own or use a service like https://www.uuidgenerator.net/version4
@@ -1301,7 +1301,7 @@
  */
 #define DEFAULT_MAX_ACCELERATION \
   {                              \
-    2000, 2000, 100, 10000       \
+    1000, 1000, 100, 10000       \
   }
 
 // #define LIMITED_MAX_ACCEL_EDITING     // Limit edit via M201 or LCD to DEFAULT_MAX_ACCELERATION * 2
@@ -1321,8 +1321,8 @@
  *   M204 T    Travel Acceleration
  */
 #define DEFAULT_ACCELERATION 800           // X, Y, Z ... and E acceleration for printing moves
-#define DEFAULT_RETRACT_ACCELERATION 10000 // E acceleration for retracts
-#define DEFAULT_TRAVEL_ACCELERATION 2000   // X, Y, Z ... acceleration for travel (non printing) moves
+#define DEFAULT_RETRACT_ACCELERATION 2000 // E acceleration for retracts
+#define DEFAULT_TRAVEL_ACCELERATION 1000   // X, Y, Z ... acceleration for travel (non printing) moves
 
 /**
  * Default Jerk limits (mm/s)
@@ -1365,7 +1365,7 @@
  *   https://blog.kyneticcnc.com/2018/10/computing-junction-deviation-for-marlin.html
  */
 #if DISABLED(CLASSIC_JERK)
-#define JUNCTION_DEVIATION_MM 0.013 // (mm) Distance from real junction edge
+#define JUNCTION_DEVIATION_MM 0.024 // (mm) Distance from real junction edge
 #define JD_HANDLE_SMALL_SEGMENTS    // Use curvature estimation instead of just the junction angle
                                     // for small segments (< 1mm) with large junction angles (> 135°).
 #endif
@@ -1772,8 +1772,8 @@
 #define Z_PROBE_LOW_POINT -2 // Farthest distance below the trigger-point to go before stopping
 
 // For M851 give a range for adjusting the Z probe offset
-#define Z_PROBE_OFFSET_RANGE_MIN -20
-#define Z_PROBE_OFFSET_RANGE_MAX 20
+#define Z_PROBE_OFFSET_RANGE_MIN -9
+#define Z_PROBE_OFFSET_RANGE_MAX 9
 
 // Enable the M48 repeatability test to test probe accuracy
 #define Z_MIN_PROBE_REPEATABILITY_TEST
@@ -1797,7 +1797,7 @@
 // #define WAIT_FOR_HOTEND         // Wait for hotend to heat back up between probes (to improve accuracy & prevent cold extrude)
 #endif
 #define PROBING_FANS_OFF // Turn fans off when probing
-// #define PROBING_ESTEPPERS_OFF     // Turn all extruder steppers off when probing
+#define PROBING_ESTEPPERS_OFF     // Turn all extruder steppers off when probing
 // #define PROBING_STEPPERS_OFF      // Turn all steppers off (unless needed to hold position) when probing (including extruders)
 // #define DELAY_BEFORE_PROBING 200  // (ms) To prevent vibrations from triggering piezo sensors
 
@@ -1844,8 +1844,8 @@
 // @section machine
 
 // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
-#define INVERT_X_DIR false
-#define INVERT_Y_DIR false
+#define INVERT_X_DIR true
+#define INVERT_Y_DIR true
 #define INVERT_Z_DIR false
 // #define INVERT_I_DIR false
 // #define INVERT_J_DIR false
@@ -1857,7 +1857,7 @@
 // @section extruder
 
 // For direct drive extruder v9 set to true, for geared extruder set to false.
-#define INVERT_E0_DIR false
+#define INVERT_E0_DIR true
 #define INVERT_E1_DIR false
 #define INVERT_E2_DIR false
 #define INVERT_E3_DIR false
@@ -1902,12 +1902,12 @@
 #define Y_BED_SIZE 300
 
 // Travel limits (linear=mm, rotational=°) after homing, corresponding to endstop positions.
-#define X_MIN_POS -12
-#define Y_MIN_POS -5
+#define X_MIN_POS -3
+#define Y_MIN_POS -7
 #define Z_MIN_POS 0
 #define X_MAX_POS X_BED_SIZE
 #define Y_MAX_POS Y_BED_SIZE
-#define Z_MAX_POS 385
+#define Z_MAX_POS 400
 // #define I_MIN_POS 0
 // #define I_MAX_POS 50
 // #define J_MIN_POS 0
@@ -1975,7 +1975,7 @@
  * RAMPS-based boards use SERVO3_PIN for the first runout sensor.
  * For other boards you may need to define FIL_RUNOUT_PIN, FIL_RUNOUT2_PIN, etc.
  */
-//#define FILAMENT_RUNOUT_SENSOR
+#define FILAMENT_RUNOUT_SENSOR
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)
 #define FIL_RUNOUT_ENABLED_DEFAULT true // Enable the sensor on startup. Override with M412 followed by M500.
 #define NUM_RUNOUT_SENSORS 1            // Number of sensors, up to one per extruder. Define a FIL_RUNOUT#_PIN for each.
@@ -2027,7 +2027,7 @@
 // After a runout is detected, continue printing this length of filament
 // before executing the runout script. Useful for a sensor at the end of
 // a feed tube. Requires 4 bytes SRAM per sensor, plus 4 bytes overhead.
-// #define FILAMENT_RUNOUT_DISTANCE_MM 25
+#define FILAMENT_RUNOUT_DISTANCE_MM 200
 
 #ifdef FILAMENT_RUNOUT_DISTANCE_MM
 // Enable this option to use an encoder disc that toggles the runout pin
@@ -2164,10 +2164,10 @@
 // Subdivision of the grid by Catmull-Rom method.
 // Synthesizes intermediate points to produce a more detailed mesh.
 //
-// #define ABL_BILINEAR_SUBDIVISION
+#define ABL_BILINEAR_SUBDIVISION
 #if ENABLED(ABL_BILINEAR_SUBDIVISION)
 // Number of subdivisions between probe points
-#define BILINEAR_SUBDIVISIONS 3
+#define BILINEAR_SUBDIVISIONS 2
 #endif
 
 #endif
@@ -2201,7 +2201,7 @@
 //===========================================================================
 
 #define MESH_INSET 10       // Set Mesh bounds as an inset region of the bed
-#define GRID_MAX_POINTS_X 3 // Don't use more than 7 points per axis, implementation limited.
+#define GRID_MAX_POINTS_X 5 // Don't use more than 7 points per axis, implementation limited.
 #define GRID_MAX_POINTS_Y GRID_MAX_POINTS_X
 
 // #define MESH_G28_REST_ORIGIN // After homing all axes ('G28' or 'G28 XYZ') rest Z at Z_MIN_POS
@@ -2265,7 +2265,7 @@
  * Commands to execute at the end of G29 probing.
  * Useful to retract or move the Z probe out of the way.
  */
-// #define Z_PROBE_END_SCRIPT "G1 Z10 F12000\nG1 X15 Y330\nG1 Z0.5\nG1 Z10"
+#define Z_PROBE_END_SCRIPT "G1 Z10\nG1 X5 Y240 F3000"
 
 // @section homing
 
@@ -2294,14 +2294,14 @@
 #define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
-#define Z_SAFE_HOMING_X_POINT X_CENTER // X point for Z homing
-#define Z_SAFE_HOMING_Y_POINT Y_CENTER // Y point for Z homing
+  #define Z_SAFE_HOMING_X_POINT (X_BED_SIZE / 2) // X point for Z homing
+  #define Z_SAFE_HOMING_Y_POINT (Y_BED_SIZE / 2)  // Y point for Z homing
 #endif
 
 // Homing speeds (linear=mm/min, rotational=°/min)
 #define HOMING_FEEDRATE_MM_M       \
   {                                \
-    (50 * 60), (50 * 60), (20 * 60) \
+    (70*60), (70*60), (16*60) \
   }
 
 // Validate that endstops are triggered on homing moves
@@ -2385,8 +2385,8 @@
 #define EEPROM_CHITCHAT    // Give feedback on EEPROM commands. Disable to save PROGMEM.
 #define EEPROM_BOOT_SILENT // Keep M503 quiet and only give errors during first load
 #if ENABLED(EEPROM_SETTINGS)
-// #define EEPROM_AUTO_INIT  // Init EEPROM automatically on any errors.
-// #define EEPROM_INIT_NOW   // Init EEPROM on first boot after a new build.
+#define EEPROM_AUTO_INIT  // Init EEPROM automatically on any errors.
+#define EEPROM_INIT_NOW   // Init EEPROM on first boot after a new build.
 #endif
 
 // @section host
@@ -2449,7 +2449,7 @@
 // Specify a park position as { X, Y, Z_raise }
 #define NOZZLE_PARK_POINT                  \
   {                                        \
-    (X_MIN_POS + 10), (Y_MAX_POS - 10), 20 \
+    (X_MIN_POS), (Y_MAX_POS), 20 \
   }
 #define NOZZLE_PARK_MOVE 0          // Park motion: 0 = XY Move, 1 = X Only, 2 = Y Only, 3 = X before Y, 4 = Y before X
 #define NOZZLE_PARK_Z_RAISE_MIN 2   // (mm) Always raise Z by at least this distance
