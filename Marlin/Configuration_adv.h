@@ -886,7 +886,7 @@
 
 #define HOMING_BUMP_MM \
   {                    \
-    0, 0, 0            \
+    5, 5, 2            \
   } // (linear=mm, rotational=°) Backoff from endstops after first bump
 #define HOMING_BUMP_DIVISOR \
   {                         \
@@ -2536,7 +2536,7 @@
 // Therefore some clients abort after 30 seconds in a timeout.
 // Some other clients start sending commands while receiving a 'wait'.
 // This "wait" is only sent when the buffer is empty. 1 second is a good value here.
-// #define NO_TIMEOUTS 1000 // Milliseconds
+#define NO_TIMEOUTS 1000 // Milliseconds
 
 // Some clients will have this feature soon. This could make the NO_TIMEOUTS unnecessary.
 #define ADVANCED_OK
@@ -3226,7 +3226,7 @@
  * Comment *_STALL_SENSITIVITY to disable sensorless homing for that axis.
  * @section tmc/stallguard
  */
-#define SENSORLESS_HOMING // StallGuard capable drivers only
+// #define SENSORLESS_HOMING // StallGuard capable drivers only
 
 #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
 // TMC2209: 0...255. TMC2130: -64...63

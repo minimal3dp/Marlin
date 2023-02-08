@@ -1204,8 +1204,8 @@
 #endif
 
 // Mechanical endstop with COM to ground and NC to Signal uses "false" here (most common setup).
-#define X_MIN_ENDSTOP_INVERTING false       // Set to true to invert the logic of the endstop.
-#define Y_MIN_ENDSTOP_INVERTING false       // Set to true to invert the logic of the endstop.
+#define X_MIN_ENDSTOP_INVERTING true       // Set to true to invert the logic of the endstop.
+#define Y_MIN_ENDSTOP_INVERTING true       // Set to true to invert the logic of the endstop.
 #define Z_MIN_ENDSTOP_INVERTING false       // Set to true to invert the logic of the endstop.
 #define I_MIN_ENDSTOP_INVERTING false       // Set to true to invert the logic of the endstop.
 #define J_MIN_ENDSTOP_INVERTING false       // Set to true to invert the logic of the endstop.
@@ -1282,7 +1282,7 @@
  */
 #define DEFAULT_MAX_FEEDRATE \
   {                          \
-    300, 300, 50, 40         \
+    300, 300, 40, 70         \
   }
 
 // #define LIMITED_MAX_FR_EDITING        // Limit edit via M203 or LCD to DEFAULT_MAX_FEEDRATE * 2
@@ -1691,13 +1691,13 @@
 
 // Most probes should stay away from the edges of the bed, but
 // with NOZZLE_AS_PROBE this can be negative for a wider probing area.
-#define PROBING_MARGIN 20
+#define PROBING_MARGIN 0
 
 // X and Y axis travel speed (mm/min) between probes
-#define XY_PROBE_FEEDRATE (150 * 60)
+#define XY_PROBE_FEEDRATE (130 * 60)
 
 // Feedrate (mm/min) for the first approach when double-probing (MULTIPLE_PROBING == 2)
-#define Z_PROBE_FEEDRATE_FAST (20 * 60)
+#define Z_PROBE_FEEDRATE_FAST (16 * 60)
 
 // Feedrate (mm/min) for the "accurate" probe of each point
 #define Z_PROBE_FEEDRATE_SLOW (Z_PROBE_FEEDRATE_FAST / 2)
@@ -1905,8 +1905,8 @@
 #define X_MIN_POS -3
 #define Y_MIN_POS -7
 #define Z_MIN_POS 0
-#define X_MAX_POS X_BED_SIZE
-#define Y_MAX_POS Y_BED_SIZE
+#define X_MAX_POS 310 //X_BED_SIZE
+#define Y_MAX_POS 310 //Y_BED_SIZE
 #define Z_MAX_POS 400
 // #define I_MIN_POS 0
 // #define I_MAX_POS 50
@@ -2118,7 +2118,7 @@
  */
 #define ENABLE_LEVELING_FADE_HEIGHT
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-#define DEFAULT_LEVELING_FADE_HEIGHT 10.0 // (mm) Default fade height.
+#define DEFAULT_LEVELING_FADE_HEIGHT 2.0 // (mm) Default fade height.
 #endif
 
 /**
