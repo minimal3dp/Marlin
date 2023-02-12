@@ -3234,6 +3234,7 @@
 //#define DWIN_CREALITY_LCD           // Creality UI
 #define DWIN_LCD_PROUI              // Pro UI by MRiscoC
 // Professional firmware features:
+#define NO_CONTROLLER_CUSTOM_WIRING_WARNING
 #define ProUIex 1
 #define HAS_GCODE_PREVIEW 1
 #define HAS_TOOLBAR 1
