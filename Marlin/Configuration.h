@@ -114,14 +114,14 @@
  * :[2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000]
  */
 #define BAUDRATE 115200
-//#define BAUD_RATE_GCODE     // Enable G-code M575 to set the baud rate
+#define BAUD_RATE_GCODE     // Enable G-code M575 to set the baud rate
 
 /**
  * Select a secondary serial port on the board to use for communication with the host.
  * Currently Ethernet (-2) is only supported on Teensy 4.1 boards.
  * :[-2, -1, 0, 1, 2, 3, 4, 5, 6, 7]
  */
-#define SERIAL_PORT_2 -1
+//#define SERIAL_PORT_2 -1
 //#define BAUDRATE_2 250000   // Enable to override BAUDRATE
 
 /**
@@ -2772,7 +2772,7 @@
 // This is RAMPS-compatible using a single 10-pin connector.
 // (For CR-10 owners who want to replace the Melzi Creality board but retain the display)
 //
-#define CR10_STOCKDISPLAY
+//#define CR10_STOCKDISPLAY
 
 //
 // Ender-2 OEM display, a variant of the MKS_MINI_12864
@@ -3097,7 +3097,20 @@
 // Ender-3 v2 OEM display. A DWIN display with Rotary Encoder.
 //
 //#define DWIN_CREALITY_LCD           // Creality UI
-//#define DWIN_LCD_PROUI              // Pro UI by MRiscoC
+#define DWIN_LCD_PROUI              // Pro UI by MRiscoC
+// Professional firmware features:
+#define ProUIex 1
+#define HAS_GCODE_PREVIEW 1
+#define HAS_TOOLBAR 1
+#define HAS_PIDPLOT 1
+#define HAS_ESDIAG 1
+#define HAS_CGCODE 1
+#define HAS_LOCKSCREEN 1
+#define MESH_EDIT_MENU
+#define USE_STOCK_DWIN_SET
+//#define HAS_SD_EXTENDER 1  // Enable it to support SD card extender cables
+#define SHOW_REAL_POS 1
+
 //#define DWIN_MARLINUI_PORTRAIT      // MarlinUI (portrait orientation)
 //#define DWIN_MARLINUI_LANDSCAPE     // MarlinUI (landscape orientation)
 
