@@ -1152,14 +1152,9 @@ public:
     return ABS(wholeDegHotend(e) - temp) < (TEMP_HYSTERESIS);
   }
 
-  // Start watching a Hotend to make sure it's really heating up
-  static void start_watching_hotend(const uint8_t E_NAME)
-  {
-    UNUSED(HOTEND_INDEX);
-#if WATCH_HOTENDS
-    watch_hotend[HOTEND_INDEX].restart(degHotend(HOTEND_INDEX), degTargetHotend(HOTEND_INDEX));
+#if ENABLED(MPCTEMP)
+  void MPC_autotune(const uint8_t e);
 #endif
-  }
 
   static void manage_hotends(const millis_t &ms);
 

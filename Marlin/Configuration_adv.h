@@ -1503,6 +1503,9 @@
 // Show the E position (filament used) during printing
 #define LCD_SHOW_E_TOTAL
 
+// Display a negative temperature instead of "err"
+// #define SHOW_TEMPERATURE_BELOW_ZERO
+
 /**
  * LED Control Menu
  * Add LED Control to the LCD menu
@@ -1537,7 +1540,7 @@
 #define SET_PROGRESS_PERCENT // Add 'P' parameter to set percentage done
 #define SET_REMAINING_TIME   // Add 'R' parameter to set remaining time
 // #define SET_INTERACTION_TIME          // Add 'C' parameter to set time until next filament change or other user interaction
-#define M73_REPORT                    // Report M73 values to host
+#define M73_REPORT // Report M73 values to host
 #if BOTH(M73_REPORT, SDSUPPORT)
 #define M73_REPORT_SD_ONLY // Report only when printing from SD
 #endif
@@ -2137,7 +2140,7 @@
 #define BABYSTEP_ZPROBE_OFFSET // Combine M851 Z and Babystepping
 #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
 // #define BABYSTEP_HOTEND_Z_OFFSET      // For multiple hotends, babystep relative Z offsets
-#define BABYSTEP_ZPROBE_GFX_OVERLAY // Enable graphical overlay on Z-offset editor
+#define BABYSTEP_GFX_OVERLAY // Enable graphical overlay on Z-offset editor
 #endif
 #endif
 
@@ -3704,7 +3707,7 @@
 /**
  * Disable all Volumetric extrusion options
  */
-//#define NO_VOLUMETRICS
+// #define NO_VOLUMETRICS
 
 #if DISABLED(NO_VOLUMETRICS)
 /**

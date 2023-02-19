@@ -60,8 +60,8 @@
 // @section info
 
 // Author info of this build printed to the host during boot and M115
-#define STRING_CONFIG_H_AUTHOR "(Minimal3DP, SWX1-SKR2 v2.1.3" // Who made the changes.
-//#define CUSTOM_VERSION_FILE Version.h                      // Path from the root directory (no quotes)
+#define STRING_CONFIG_H_AUTHOR "(Minimal3DP, SWX1-SKR2 v2.1.4" // Who made the changes.
+// #define CUSTOM_VERSION_FILE Version.h                      // Path from the root directory (no quotes)
 
 /**
  * *** VENDORS PLEASE READ ***
@@ -1204,8 +1204,8 @@
 #endif
 
 // Mechanical endstop with COM to ground and NC to Signal uses "false" here (most common setup).
-#define X_MIN_ENDSTOP_INVERTING true       // Set to true to invert the logic of the endstop.
-#define Y_MIN_ENDSTOP_INVERTING true       // Set to true to invert the logic of the endstop.
+#define X_MIN_ENDSTOP_INVERTING true        // Set to true to invert the logic of the endstop.
+#define Y_MIN_ENDSTOP_INVERTING true        // Set to true to invert the logic of the endstop.
 #define Z_MIN_ENDSTOP_INVERTING false       // Set to true to invert the logic of the endstop.
 #define I_MIN_ENDSTOP_INVERTING false       // Set to true to invert the logic of the endstop.
 #define J_MIN_ENDSTOP_INVERTING false       // Set to true to invert the logic of the endstop.
@@ -1320,9 +1320,9 @@
  *   M204 R    Retract Acceleration
  *   M204 T    Travel Acceleration
  */
-#define DEFAULT_ACCELERATION 800           // X, Y, Z ... and E acceleration for printing moves
+#define DEFAULT_ACCELERATION 800          // X, Y, Z ... and E acceleration for printing moves
 #define DEFAULT_RETRACT_ACCELERATION 2000 // E acceleration for retracts
-#define DEFAULT_TRAVEL_ACCELERATION 1000   // X, Y, Z ... acceleration for travel (non printing) moves
+#define DEFAULT_TRAVEL_ACCELERATION 1000  // X, Y, Z ... acceleration for travel (non printing) moves
 
 /**
  * Default Jerk limits (mm/s)
@@ -1332,7 +1332,7 @@
  * When changing speed and direction, if the difference is less than the
  * value set here, it may happen instantaneously.
  */
-//#define CLASSIC_JERK
+// #define CLASSIC_JERK
 #if ENABLED(CLASSIC_JERK)
 #define DEFAULT_XJERK 8.0
 #define DEFAULT_YJERK 8.0
@@ -1796,8 +1796,8 @@
 // #define WAIT_FOR_BED_HEATER     // Wait for bed to heat back up between probes (to improve accuracy)
 // #define WAIT_FOR_HOTEND         // Wait for hotend to heat back up between probes (to improve accuracy & prevent cold extrude)
 #endif
-#define PROBING_FANS_OFF // Turn fans off when probing
-#define PROBING_ESTEPPERS_OFF     // Turn all extruder steppers off when probing
+#define PROBING_FANS_OFF      // Turn fans off when probing
+#define PROBING_ESTEPPERS_OFF // Turn all extruder steppers off when probing
 // #define PROBING_STEPPERS_OFF      // Turn all steppers off (unless needed to hold position) when probing (including extruders)
 // #define DELAY_BEFORE_PROBING 200  // (ms) To prevent vibrations from triggering piezo sensors
 
@@ -1857,7 +1857,7 @@
 // @section extruder
 
 // For direct drive extruder v9 set to true, for geared extruder set to false.
-#define INVERT_E0_DIR true
+#define INVERT_E0_DIR false
 #define INVERT_E1_DIR false
 #define INVERT_E2_DIR false
 #define INVERT_E3_DIR false
@@ -1905,8 +1905,8 @@
 #define X_MIN_POS -3
 #define Y_MIN_POS -7
 #define Z_MIN_POS 0
-#define X_MAX_POS 310 //X_BED_SIZE
-#define Y_MAX_POS 310 //Y_BED_SIZE
+#define X_MAX_POS 310 // X_BED_SIZE
+#define Y_MAX_POS 310 // Y_BED_SIZE
 #define Z_MAX_POS 400
 // #define I_MIN_POS 0
 // #define I_MAX_POS 50
@@ -2194,6 +2194,37 @@
 
 // #define UBL_MESH_WIZARD         // Run several commands in a row to get a complete mesh
 
+/**
+ * Probing not allowed within the position of an obstacle.
+ */
+// #define AVOID_OBSTACLES
+#if ENABLED(AVOID_OBSTACLES)
+#define CLIP_W 23 // Bed clip width, should be padded a few mm over its physical size
+#define CLIP_H 14 // Bed clip height, should be padded a few mm over its physical size
+
+// Obstacle Rectangles defined as { X1, Y1, X2, Y2 }
+#define OBSTACLE1                                                               \
+  {                                                                             \
+    (X_BED_SIZE) / 4 - (CLIP_W) / 2, 0, (X_BED_SIZE) / 4 + (CLIP_W) / 2, CLIP_H \
+  }
+#define OBSTACLE2                                                                     \
+  {                                                                                   \
+    (X_BED_SIZE) * 3 / 4 - (CLIP_W) / 2, 0, (X_BED_SIZE)*3 / 4 + (CLIP_W) / 2, CLIP_H \
+  }
+#define OBSTACLE3                                                                                         \
+  {                                                                                                       \
+    (X_BED_SIZE) / 4 - (CLIP_W) / 2, (Y_BED_SIZE) - (CLIP_H), (X_BED_SIZE) / 4 + (CLIP_W) / 2, Y_BED_SIZE \
+  }
+#define OBSTACLE4                                                                                               \
+  {                                                                                                             \
+    (X_BED_SIZE) * 3 / 4 - (CLIP_W) / 2, (Y_BED_SIZE) - (CLIP_H), (X_BED_SIZE)*3 / 4 + (CLIP_W) / 2, Y_BED_SIZE \
+  }
+
+// The probed grid must be inset for G29 J. This is okay, since it is
+// only used to compute a linear transformation for the mesh itself.
+#define G29J_MESH_TILT_MARGIN ((CLIP_H) + 1)
+#endif
+
 #elif ENABLED(MESH_BED_LEVELING)
 
 //===========================================================================
@@ -2294,14 +2325,14 @@
 #define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
-  #define Z_SAFE_HOMING_X_POINT (X_BED_SIZE / 2) // X point for Z homing
-  #define Z_SAFE_HOMING_Y_POINT (Y_BED_SIZE / 2)  // Y point for Z homing
+#define Z_SAFE_HOMING_X_POINT (X_BED_SIZE / 2) // X point for Z homing
+#define Z_SAFE_HOMING_Y_POINT (Y_BED_SIZE / 2) // Y point for Z homing
 #endif
 
 // Homing speeds (linear=mm/min, rotational=°/min)
-#define HOMING_FEEDRATE_MM_M       \
-  {                                \
-    (70*60), (70*60), (16*60) \
+#define HOMING_FEEDRATE_MM_M        \
+  {                                 \
+    (70 * 60), (70 * 60), (16 * 60) \
   }
 
 // Validate that endstops are triggered on homing moves
@@ -2385,8 +2416,8 @@
 #define EEPROM_CHITCHAT    // Give feedback on EEPROM commands. Disable to save PROGMEM.
 #define EEPROM_BOOT_SILENT // Keep M503 quiet and only give errors during first load
 #if ENABLED(EEPROM_SETTINGS)
-#define EEPROM_AUTO_INIT  // Init EEPROM automatically on any errors.
-#define EEPROM_INIT_NOW   // Init EEPROM on first boot after a new build.
+#define EEPROM_AUTO_INIT // Init EEPROM automatically on any errors.
+#define EEPROM_INIT_NOW  // Init EEPROM on first boot after a new build.
 #endif
 
 // @section host
@@ -2447,8 +2478,8 @@
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
 // Specify a park position as { X, Y, Z_raise }
-#define NOZZLE_PARK_POINT                  \
-  {                                        \
+#define NOZZLE_PARK_POINT        \
+  {                              \
     (X_MIN_POS), (Y_MAX_POS), 20 \
   }
 #define NOZZLE_PARK_MOVE 0          // Park motion: 0 = XY Move, 1 = X Only, 2 = Y Only, 3 = X before Y, 4 = Y before X
@@ -3192,6 +3223,8 @@
 // #define DGUS_LCD_UI ORIGIN
 #if DGUS_UI_IS(MKS)
 #define USE_MKS_GREEN_UI
+#elif DGUS_UI_IS(IA_CREALITY)
+// #define LCD_SCREEN_ROTATE 90 // Portrait Mode or 800x480 displays
 #endif
 
 //
