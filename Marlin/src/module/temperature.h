@@ -679,23 +679,10 @@ public:
   static celsius_t hotend_max_target(const uint8_t e) { return hotend_maxtemp[e] - (HOTEND_OVERSHOOT); }
 #endif
 
-#if HAS_HEATED_BED
-  static bed_info_t temp_bed;
-#endif
-#if HAS_TEMP_PROBE
-  static probe_info_t temp_probe;
-#endif
-#if HAS_TEMP_CHAMBER
-  static chamber_info_t temp_chamber;
-#endif
-#if HAS_TEMP_COOLER
-  static cooler_info_t temp_cooler;
-#endif
-#if HAS_TEMP_BOARD
-  static board_info_t temp_board;
-#endif
-#if HAS_TEMP_REDUNDANT
-  static redundant_info_t temp_redundant;
+#if HAS_HOTEND
+  static hotend_info_t temp_hotend[HOTENDS];
+  static constexpr celsius_t hotend_maxtemp[HOTENDS] = ARRAY_BY_HOTENDS(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_2_MAXTEMP, HEATER_3_MAXTEMP, HEATER_4_MAXTEMP, HEATER_5_MAXTEMP, HEATER_6_MAXTEMP, HEATER_7_MAXTEMP);
+  static celsius_t hotend_max_target(const uint8_t e) { return hotend_maxtemp[e] - (HOTEND_OVERSHOOT); }
 #endif
 
 #if EITHER(AUTO_POWER_E_FANS, HAS_FANCHECK)
