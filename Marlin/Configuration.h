@@ -60,7 +60,7 @@
 // @section info
 
 // Author info of this build printed to the host during boot and M115
-#define STRING_CONFIG_H_AUTHOR "(Minimal3DP, SWX1-SKR2 v2.1.4" // Who made the changes.
+#define STRING_CONFIG_H_AUTHOR "(Minimal3DP, SWX1-SKR2 v2.1.5" // Who made the changes.
 // #define CUSTOM_VERSION_FILE Version.h                      // Path from the root directory (no quotes)
 
 /**
@@ -1823,9 +1823,10 @@
 
 // Disable axis steppers immediately when they're not being stepped.
 // WARNING: When motors turn off there is a chance of losing position accuracy!
-#define DISABLE_X
-#define DISABLE_Y
-#define DISABLE_Z
+//#define DISABLE_X
+//#define DISABLE_Y
+//#define DISABLE_Z
+
 // #define DISABLE_I
 // #define DISABLE_J
 // #define DISABLE_K
