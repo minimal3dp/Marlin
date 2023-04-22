@@ -108,7 +108,7 @@
 #else
 
   // Standard direct-connected LCD implementations
-  LCD_CLASS lcd(LCD_PINS_RS, LCD_PINS_ENABLE, LCD_PINS_D4, LCD_PINS_D5, LCD_PINS_D6, LCD_PINS_D7);
+  LCD_CLASS lcd(LCD_PINS_RS, LCD_PINS_EN, LCD_PINS_D4, LCD_PINS_D5, LCD_PINS_D6, LCD_PINS_D7);
 
 #endif
 
@@ -521,7 +521,7 @@ FORCE_INLINE void _draw_axis_value(const AxisEnum axis, const char *value, const
   else if (axis_should_home(axis))
     while (const char c = *value++) lcd_put_lchar(c <= '.' ? c : '?');
   else if (NONE(HOME_AFTER_DEACTIVATE, DISABLE_REDUCED_ACCURACY_WARNING) && !axis_is_trusted(axis))
-    lcd_put_u8str(axis == Z_AXIS ? F("       ") : F("    "));
+    lcd_put_u8str(TERN0(HAS_Z_AXIS, axis == Z_AXIS) ? F("       ") : F("    "));
   else
     lcd_put_u8str(value);
 }
@@ -998,11 +998,12 @@ void MarlinUI::draw_status_screen() {
 
       #endif // LCD_WIDTH >= 20
 
-      lcd_moveto(LCD_WIDTH - 8, 1);
-      _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(current_position.z)), blink);
-
-      #if HAS_LEVELING && !HAS_HEATED_BED
-        lcd_put_lchar(planner.leveling_active || blink ? '_' : ' ');
+      #if HAS_Z_AXIS
+        lcd_moveto(LCD_WIDTH - 8, 1);
+        _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(current_position.z)), blink);
+        #if HAS_LEVELING && !HAS_HEATED_BED
+          lcd_put_lchar(planner.leveling_active || blink ? '_' : ' ');
+        #endif
       #endif
 
     #endif // LCD_HEIGHT > 2
@@ -1136,17 +1137,38 @@ void MarlinUI::draw_status_screen() {
   #endif // ADVANCED_PAUSE_FEATURE
 
   // Draw a static item with no left-right margin required. Centered by default.
-  void MenuItem_static::draw(const uint8_t row, FSTR_P const fstr, const uint8_t style/*=SS_DEFAULT*/, const char * const vstr/*=nullptr*/) {
-    int8_t n = LCD_WIDTH;
+  void MenuItem_static::draw(const uint8_t row, FSTR_P const fstr, const uint8_t style/*=SS_DEFAULT*/, const char *vstr/*=nullptr*/) {
     lcd_moveto(0, row);
+
+    int8_t n = LCD_WIDTH;
+    const bool center = bool(style & SS_CENTER), full = bool(style & SS_FULL);
     const int8_t plen = fstr ? utf8_strlen(fstr) : 0,
                  vlen = vstr ? utf8_strlen(vstr) : 0;
-    if (style & SS_CENTER) {
-      int8_t pad = (LCD_WIDTH - plen - vlen) / 2;
-      while (--pad >= 0) { lcd_put_u8str(F(" ")); n--; }
+    int8_t pad = (center || full) ? n - plen - vlen : 0;
+
+    // SS_CENTER: Pad with half of the unused space first
+    if (center) for (int8_t lpad = pad / 2; lpad > 0; --lpad) { lcd_put_u8str(F(" ")); n--; }
+
+    // Draw as much of the label as fits
+    if (plen) {
+      const int8_t expl = n;
+      n = lcd_put_u8str(fstr, itemIndex, itemStringC, itemStringF, n);
+      pad -= (expl - n - plen); // Reduce the padding
     }
-    if (plen) n = lcd_put_u8str(fstr, itemIndex, itemStringC, itemStringF, n);
-    if (vlen) n -= lcd_put_u8str_max(vstr, n);
+
+    if (vlen && n > 0) {
+      // SS_FULL: Pad with enough space to justify the value
+      if (full && !center) {
+        // Move the leading colon from the value to the label
+        if (*vstr == ':') { n -= lcd_put_u8str(F(":")); vstr++; }
+        // Move spaces to the padding
+        while (*vstr == ' ') { vstr++; pad++; }
+        // Pad in-between
+        for (; pad > 0; --pad) { lcd_put_u8str(F(" ")); n--; }
+      }
+      n -= lcd_put_u8str_max(vstr, n);
+    }
+
     for (; n > 0; --n) lcd_put_u8str(F(" "));
   }
 

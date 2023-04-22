@@ -351,7 +351,6 @@ void MarlinUI::init() {
 
   #if IS_DWIN_MARLINUI
     bool MarlinUI::did_first_redraw;
-    bool MarlinUI::old_is_printing;
   #endif
 
   #if ENABLED(SDSUPPORT)
@@ -672,7 +671,7 @@ void MarlinUI::init() {
     #if HAS_MARLINUI_MENU
       if (use_click()) {
         #if BOTH(FILAMENT_LCD_DISPLAY, SDSUPPORT)
-          next_filament_display = millis() + 5000UL;  // Show status message for 5s
+          pause_filament_display();
         #endif
         goto_screen(menu_main);
         reinit_lcd(); // Revive a noisy shared SPI LCD
@@ -1593,7 +1592,7 @@ void MarlinUI::init() {
       #endif
 
       #if BOTH(FILAMENT_LCD_DISPLAY, SDSUPPORT)
-        next_filament_display = ms + 5000UL; // Show status message for 5s
+        pause_filament_display(ms); // Show status message for 5s
       #endif
 
     #endif
