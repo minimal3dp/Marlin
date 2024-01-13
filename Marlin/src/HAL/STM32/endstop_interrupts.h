@@ -4,7 +4,6 @@
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2017 Victor Perez
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +33,7 @@ void setup_endstop_interrupts() {
   TERN_(USE_Y_MAX,       _ATTACH(Y_MAX_PIN));
   TERN_(USE_Y_MIN,       _ATTACH(Y_MIN_PIN));
   TERN_(USE_Z_MAX,       _ATTACH(Z_MAX_PIN));
-  TERN_(HAS_Z_MIN_PIN,   _ATTACH(Z_MIN_PIN));
+  TERN_(USE_Z_MIN,       _ATTACH(Z_MIN_PIN));
   TERN_(USE_X2_MAX,      _ATTACH(X2_MAX_PIN));
   TERN_(USE_X2_MIN,      _ATTACH(X2_MIN_PIN));
   TERN_(USE_Y2_MAX,      _ATTACH(Y2_MAX_PIN));

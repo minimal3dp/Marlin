@@ -29,11 +29,13 @@
 
 #include "../../../inc/MarlinConfigPre.h"
 
-#if ALL(DWIN_LCD_PROUI, HAS_ESDIAG)
+#if ENABLED(DWIN_LCD_PROUI)
+
+#include "dwin_defines.h"
+
+#if HAS_ESDIAG
 
 #include "endstop_diag.h"
-
-#include "../../../core/types.h"
 #include "../../marlinui.h"
 #include "dwin.h"
 #include "dwin_popup.h"
@@ -70,9 +72,9 @@ void ESDiag::draw() {
   DWINUI::drawButton(BTN_Continue, 86, 250);
   DWINUI::cursor.y = 80;
   #define ES_LABEL(S) draw_es_label(F(STR_##S))
-  TERN_(USE_X_MIN,     ES_LABEL(X_MIN)); TERN_(USE_X_MAX, ES_LABEL(X_MAX));
-  TERN_(USE_Y_MIN,     ES_LABEL(Y_MIN)); TERN_(USE_Y_MAX, ES_LABEL(Y_MAX));
-  TERN_(HAS_Z_MIN_PIN, ES_LABEL(Z_MIN)); TERN_(USE_Z_MAX, ES_LABEL(Z_MAX));
+  TERN_(USE_X_MIN, ES_LABEL(X_MIN)); TERN_(USE_X_MAX, ES_LABEL(X_MAX));
+  TERN_(USE_Y_MIN, ES_LABEL(Y_MIN)); TERN_(USE_Y_MAX, ES_LABEL(Y_MAX));
+  TERN_(USE_Z_MIN, ES_LABEL(Z_MIN)); TERN_(USE_Z_MAX, ES_LABEL(Z_MAX));
   TERN_(HAS_FILAMENT_SENSOR, draw_es_label(F(STR_FILAMENT)));
   update();
 }
@@ -80,11 +82,12 @@ void ESDiag::draw() {
 void ESDiag::update() {
   DWINUI::cursor.y = 80;
   #define ES_REPORT(S) draw_es_state(READ(S##_PIN) == S##_ENDSTOP_HIT_STATE)
-  TERN_(USE_X_MIN,     ES_REPORT(X_MIN)); TERN_(USE_X_MAX, ES_REPORT(X_MAX));
-  TERN_(USE_Y_MIN,     ES_REPORT(Y_MIN)); TERN_(USE_Y_MAX, ES_REPORT(Y_MAX));
-  TERN_(HAS_Z_MIN_PIN, ES_REPORT(Z_MIN)); TERN_(USE_Z_MAX, ES_REPORT(Z_MAX));
+  TERN_(USE_X_MIN, ES_REPORT(X_MIN)); TERN_(USE_X_MAX, ES_REPORT(X_MAX));
+  TERN_(USE_Y_MIN, ES_REPORT(Y_MIN)); TERN_(USE_Y_MAX, ES_REPORT(Y_MAX));
+  TERN_(USE_Z_MIN, ES_REPORT(Z_MIN)); TERN_(USE_Z_MAX, ES_REPORT(Z_MAX));
   TERN_(HAS_FILAMENT_SENSOR, draw_es_state(READ(FIL_RUNOUT1_PIN) != FIL_RUNOUT1_STATE));
   dwinUpdateLCD();
 }
 
-#endif // DWIN_LCD_PROUI && HAS_ESDIAG
+#endif // HAS_ESDIAG
+#endif // DWIN_LCD_PROUI
